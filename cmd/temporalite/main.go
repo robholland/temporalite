@@ -46,6 +46,7 @@ const (
 	logLevelFlag      = "log-level"
 	namespaceFlag     = "namespace"
 	pragmaFlag        = "sqlite-pragma"
+	configFlag        = "config"
 	historyShardsFlag = "history-shards"
 )
 
