@@ -34,16 +34,17 @@ var (
 )
 
 const (
-	ephemeralFlag = "ephemeral"
-	dbPathFlag    = "filename"
-	portFlag      = "port"
-	uiPortFlag    = "ui-port"
-	headlessFlag  = "headless"
-	ipFlag        = "ip"
-	logFormatFlag = "log-format"
-	logLevelFlag  = "log-level"
-	namespaceFlag = "namespace"
-	pragmaFlag    = "sqlite-pragma"
+	ephemeralFlag     = "ephemeral"
+	dbPathFlag        = "filename"
+	portFlag          = "port"
+	uiPortFlag        = "ui-port"
+	headlessFlag      = "headless"
+	ipFlag            = "ip"
+	logFormatFlag     = "log-format"
+	logLevelFlag      = "log-level"
+	namespaceFlag     = "namespace"
+	pragmaFlag        = "sqlite-pragma"
+	historyShardsFlag = "history-shards"
 )
 
 func init() {
@@ -125,6 +126,12 @@ func buildCLI() *cli.App {
 					EnvVars: nil,
 					Value:   nil,
 				},
+				&cli.IntFlag{
+					Name:    historyShardsFlag,
+					Usage:   `customize the history shard count`,
+					EnvVars: nil,
+					Value:   int(defaultCfg.HistoryShards),
+				},
 			},
 			Before: func(c *cli.Context) error {
 				if c.Args().Len() > 0 {
@@ -155,9 +162,10 @@ func buildCLI() *cli.App {
 			},
 			Action: func(c *cli.Context) error {
 				var (
-					ip         = c.String(ipFlag)
-					serverPort = c.Int(portFlag)
-					uiPort     = serverPort + 1000
+					ip            = c.String(ipFlag)
+					serverPort    = c.Int(portFlag)
+					uiPort        = serverPort + 1000
+					historyShards = int32(c.Int(historyShardsFlag))
 				)
 
 				if c.IsSet(uiPortFlag) {
@@ -179,6 +187,7 @@ func buildCLI() *cli.App {
 					temporalite.WithUpstreamOptions(
 						temporal.InterruptOn(temporal.InterruptCh()),
 					),
+					temporalite.WithHistoryShards(historyShards),
 				}
 				if !c.Bool(headlessFlag) {
 					opt := newUIOption(fmt.Sprintf(":%d", c.Int(portFlag)), ip, uiPort)

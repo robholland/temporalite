@@ -56,6 +56,7 @@ type Config struct {
 	portProvider     *portProvider
 	FrontendIP       string
 	UIServer         UIServer
+	HistoryShards    int32
 }
 
 var SupportedPragmas = map[string]struct{}{
@@ -91,8 +92,9 @@ func NewDefaultConfig() (*Config, error) {
 			Level:      "info",
 			OutputFile: "",
 		})),
-		portProvider: &portProvider{},
-		FrontendIP:   "",
+		portProvider:  &portProvider{},
+		FrontendIP:    "",
+		HistoryShards: 1,
 	}, nil
 }
 
@@ -152,7 +154,7 @@ func Convert(cfg *Config) *config.Config {
 		Persistence: config.Persistence{
 			DefaultStore:     PersistenceStoreName,
 			VisibilityStore:  PersistenceStoreName,
-			NumHistoryShards: 1,
+			NumHistoryShards: cfg.HistoryShards,
 			DataStores: map[string]config.DataStore{
 				PersistenceStoreName: {SQL: &sqliteConfig},
 			},

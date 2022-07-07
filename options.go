@@ -99,6 +99,13 @@ func WithUpstreamOptions(options ...temporal.ServerOption) ServerOption {
 	})
 }
 
+// WithHistoryShards applies NumHistoryShards config.
+func WithHistoryShards(shards int32) ServerOption {
+	return newApplyFuncContainer(func(cfg *liteconfig.Config) {
+		cfg.HistoryShards = shards
+	})
+}
+
 type applyFuncContainer struct {
 	applyInternal func(*liteconfig.Config)
 }
