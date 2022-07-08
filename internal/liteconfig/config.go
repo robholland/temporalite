@@ -58,6 +58,7 @@ type Config struct {
 	portProvider     *portProvider
 	FrontendIP       string
 	UIServer         UIServer
+	MetricsHandler   metrics.MetricsHandler
 	BaseConfig       *config.Config
 }
 
@@ -130,7 +131,7 @@ func Convert(cfg *Config) *config.Config {
 		if cfg.FrontendPort == 0 {
 			cfg.FrontendPort = cfg.portProvider.mustGetFreePort()
 		}
-		if cfg.MetricsPort == 0 {
+		if cfg.MetricsHandler == nil && cfg.MetricsPort == 0 {
 			cfg.MetricsPort = cfg.portProvider.mustGetFreePort()
 		}
 		pprofPort = cfg.portProvider.mustGetFreePort()
@@ -138,7 +139,7 @@ func Convert(cfg *Config) *config.Config {
 		if cfg.FrontendPort == 0 {
 			cfg.FrontendPort = DefaultFrontendPort
 		}
-		if cfg.MetricsPort == 0 {
+		if cfg.MetricsHandler == nil && cfg.MetricsPort == 0 {
 			cfg.MetricsPort = cfg.FrontendPort + 200
 		}
 		pprofPort = cfg.FrontendPort + 201
@@ -149,11 +150,13 @@ func Convert(cfg *Config) *config.Config {
 		MaxJoinDuration:  30 * time.Second,
 		BroadcastAddress: broadcastAddress,
 	}
-	baseConfig.Global.Metrics = &metrics.Config{
-		Prometheus: &metrics.PrometheusConfig{
-			ListenAddress: fmt.Sprintf("%s:%d", cfg.FrontendIP, cfg.MetricsPort),
-			HandlerPath:   "/metrics",
-		},
+	if cfg.MetricsHandler == nil {
+		baseConfig.Global.Metrics = &metrics.Config{
+			Prometheus: &metrics.PrometheusConfig{
+				ListenAddress: fmt.Sprintf("%s:%d", cfg.FrontendIP, cfg.MetricsPort),
+				HandlerPath:   "/metrics",
+			},
+		}
 	}
 	baseConfig.Global.PProf = config.PProf{Port: pprofPort}
 	baseConfig.Persistence = config.Persistence{

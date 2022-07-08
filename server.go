@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/server/common/authorization"
@@ -90,6 +89,10 @@ func NewServer(opts ...ServerOption) (*Server, error) {
 		temporal.WithDynamicConfigClient(dynamicconfig.NewNoopClient()),
 	}
 
+	if c.MetricsHandler != nil {
+		serverOpts = append(serverOpts, temporal.WithCustomMetricsHandler(c.MetricsHandler))
+	}
+
 	if len(c.UpstreamOptions) > 0 {
 		serverOpts = append(serverOpts, c.UpstreamOptions...)
 	}
@@ -133,7 +136,7 @@ func (s *Server) NewClient(ctx context.Context, namespace string) (client.Client
 // Note that the HostPort and ConnectionOptions fields of client.Options will always be overridden.
 func (s *Server) NewClientWithOptions(ctx context.Context, options client.Options) (client.Client, error) {
 	options.HostPort = s.frontendHostPort
-	return client.NewClient(options)
+	return client.Dial(options)
 }
 
 // FrontendHostPort returns the host:port for this server.
@@ -142,11 +145,4 @@ func (s *Server) NewClientWithOptions(ctx context.Context, options client.Option
 // NewClient or NewClientWithOptions should be used instead.
 func (s *Server) FrontendHostPort() string {
 	return s.frontendHostPort
-}
-
-func timeoutFromContext(ctx context.Context, defaultTimeout time.Duration) time.Duration {
-	if deadline, ok := ctx.Deadline(); ok {
-		return deadline.Sub(time.Now())
-	}
-	return defaultTimeout
 }
