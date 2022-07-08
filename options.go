@@ -7,6 +7,7 @@ package temporalite
 import (
 	"go.temporal.io/server/common/config"
 	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/temporal"
 
 	"github.com/DataDog/temporalite/internal/liteconfig"
@@ -106,6 +107,13 @@ func WithSQLitePragmas(pragmas map[string]string) ServerOption {
 func WithUpstreamOptions(options ...temporal.ServerOption) ServerOption {
 	return newApplyFuncContainer(func(cfg *liteconfig.Config) {
 		cfg.UpstreamOptions = append(cfg.UpstreamOptions, options...)
+	})
+}
+
+// WithCustomMetricsHandler registers a custom metrics handler for Temporal server.
+func WithCustomMetricsHandler(handler metrics.MetricsHandler) ServerOption {
+	return newApplyFuncContainer(func(cfg *liteconfig.Config) {
+		cfg.MetricsHandler = handler
 	})
 }
 
